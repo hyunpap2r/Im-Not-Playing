@@ -33,6 +33,7 @@
             timer1 = new System.Windows.Forms.Timer(components);
             CatchCnt = new TextBox();
             timer2 = new System.Windows.Forms.Timer(components);
+            ResultBox = new TextBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
@@ -62,11 +63,20 @@
             // 
             timer2.Enabled = true;
             // 
+            // ResultBox
+            // 
+            ResultBox.Location = new Point(475, 39);
+            ResultBox.Name = "ResultBox";
+            ResultBox.ReadOnly = true;
+            ResultBox.Size = new Size(166, 23);
+            ResultBox.TabIndex = 2;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(648, 485);
+            Controls.Add(ResultBox);
             Controls.Add(CatchCnt);
             Controls.Add(pictureBox1);
             Name = "Form1";
@@ -84,5 +94,6 @@
         private System.Windows.Forms.Timer timer1;
         private TextBox CatchCnt;
         private System.Windows.Forms.Timer timer2;
+        private TextBox ResultBox;
     }
 }

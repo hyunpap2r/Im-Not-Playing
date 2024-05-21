@@ -29,6 +29,7 @@ namespace Im_Not_Playing
                 return false;
             }
         }
+
         public string GetConnectionString()
         {
             return connectString;

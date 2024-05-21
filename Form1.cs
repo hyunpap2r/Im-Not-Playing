@@ -11,6 +11,7 @@ using Emgu.CV.Linemod;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
 using Npgsql;
+using System.Drawing.Imaging;
 
 
 namespace Im_Not_Playing
@@ -20,6 +21,8 @@ namespace Im_Not_Playing
         OpenCvSharp.VideoCapture video;
         Mat mImage = new Mat();
 
+        int UploadCnt = 0;
+
         public Form1()
         {
             InitializeComponent();
@@ -28,7 +31,7 @@ namespace Im_Not_Playing
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            // video connection
+            // Video 연결
             try
             {
                 video = new VideoCapture(0);
@@ -40,7 +43,7 @@ namespace Im_Not_Playing
                 timer1.Enabled = false;
             }
 
-            // Db connection
+            // Db 연결
             ConnectionDb connection = new ConnectionDb();
             connection.ConnectionTest();
 
@@ -60,23 +63,60 @@ namespace Im_Not_Playing
 
             var faceDetector = new FaceDetector();
             faceDetector.DetectAndDraw(mImage);
-            pictureBox1.Image = BitmapConverter.ToBitmap(mImage);
+            
+            //Mat -> Bitmap 형변환
+            Bitmap mImageBitmap = BitmapConverter.ToBitmap(mImage);
+            pictureBox1.Image = mImageBitmap;
+
 
             if (faceDetector.CatchCnt == 0 && !stopwatch.IsRunning)
             {
                 stopwatch.Start();
                 CatchCnt.BackColor = Color.Red;
+
+                UploadCnt++;
+                string filename = "NewFace" + UploadCnt.ToString() + ".png";
+                string folderPath = @"C:\Users\mw281\OneDrive\바탕 화면\IdentifyFace\steven";
+                
+                Task.Run(() =>
+                {
+                    // 비동기 과정에서 원본파일이 아닌 Clone파일을 사용하기 위해 복제
+                    Bitmap mImageBitmapCopy = (Bitmap)mImageBitmap.Clone();
+
+                    // 파일 저장
+                    mImageBitmapCopy.Save(Path.Combine(folderPath, filename), ImageFormat.Png);
+                }).ContinueWith((prevTask) =>
+                {
+
+                    var imageBytes = File.ReadAllBytes(Path.Combine(folderPath, filename));
+                    
+                    // ML모델 사용
+                    Identify_Face.ModelInput sampleData = new Identify_Face.ModelInput()
+                    {
+                        ImageSource = imageBytes,
+                    };
+
+                   var sortedScoresWithLabel = Identify_Face.PredictAllLabels(sampleData);
+                   
+                    // 비교결과중 예상치가 더 높은 결과를 가져오도록 함.
+                   var highestScoreKey = sortedScoresWithLabel.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+
+                    // UI 업데이트는 UI 스레드에서 실행
+                    UpdateResultBox(highestScoreKey.ToString());
+
+                });
+
             }
             else if (faceDetector.CatchCnt == 0 && stopwatch.IsRunning)
             {
-                // 얼굴이 감지되지 않는 동안의 시간을 계속 측정합니다.
+                // 얼굴이 감지되지 않는 동안의 시간을 계속 측정
                 CatchCnt.BackColor = Color.Red;
             }
             else if (faceDetector.CatchCnt > 0 && stopwatch.IsRunning)
             {
                 stopwatch.Stop();
 
-                // 빨간 사각형이 표시되는 동안의 시간만 DB에 삽입합니다.
+                // 빨간 사각형이 표시되는 동안의 시간만 DB에 삽입
                 InsertTimeIntoDatabase(stopwatch.Elapsed, cumulativeTime);
 
                 cumulativeTime += stopwatch.Elapsed;
@@ -91,7 +131,9 @@ namespace Im_Not_Playing
 
         private void InsertTimeIntoDatabase(TimeSpan onceTime, TimeSpan totalTime)
         {
+            // 한 번 동안의 시간
             string onceTimeString = onceTime.ToString(@"hh\:mm\:ss");
+            // 총 누적시작
             string totalTimeString = totalTime.ToString(@"hh\:mm\:ss");
 
             if (onceTimeString == "00:00:00")
@@ -99,10 +141,12 @@ namespace Im_Not_Playing
                 return;
             }
 
+            // Db연결
             ConnectionDb connectionDb = new ConnectionDb();
             string connString = connectionDb.GetConnectionString();
 
 
+            // Table에 데이터 Insert
             using (var connection = new NpgsqlConnection(connString))
             {
                 string query = "INSERT INTO Playing_time (Once_Time, Total_Time) VALUES (@OnceTime, @TotalTime);";
@@ -117,6 +161,20 @@ namespace Im_Not_Playing
             }
         }
 
+        // UI 업데이트는 UI 스레드에서 실행
+        private void UpdateResultBox(string text)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<string>(UpdateResultBox), new object[] { text });
+                return;
+            }
+            ResultBox.Text = text;
+        }
+
+
 
     }
 }
+
+

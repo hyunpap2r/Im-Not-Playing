@@ -1,3 +1,4 @@
+
 namespace Im_Not_Playing
 {
     internal static class Program
