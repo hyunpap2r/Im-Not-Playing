@@ -26,7 +26,7 @@ namespace Im_Not_Playing
         public Form1()
         {
             InitializeComponent();
-            timer1.Enabled= true;
+            timer1.Enabled = true;
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -57,76 +57,91 @@ namespace Im_Not_Playing
         private System.Diagnostics.Stopwatch stopwatch = new System.Diagnostics.Stopwatch();
         private TimeSpan cumulativeTime = TimeSpan.Zero;
 
+        // 본인 CPU Core 기준, ML, I/O 및 Clone으로 인해 core 대비 / 2로 설정
+        private SemaphoreSlim semaphore = new SemaphoreSlim(3, 3);
+
+        private bool DetectorFlag = true;
+
         private void timer1_Tick(object sender, EventArgs e)
         {
+
+
             video.Read(mImage);
 
             var faceDetector = new FaceDetector();
             faceDetector.DetectAndDraw(mImage);
-            
+
             //Mat -> Bitmap 형변환
             Bitmap mImageBitmap = BitmapConverter.ToBitmap(mImage);
             pictureBox1.Image = mImageBitmap;
 
-
-            if (faceDetector.CatchCnt == 0 && !stopwatch.IsRunning)
+            if(DetectorFlag)
             {
-                stopwatch.Start();
-                CatchCnt.BackColor = Color.Red;
-
-                UploadCnt++;
-                string filename = "NewFace" + UploadCnt.ToString() + ".png";
-                string folderPath = @"C:\Users\mw281\OneDrive\바탕 화면\IdentifyFace\steven";
-                
-                Task.Run(() =>
-                {
-                    // 비동기 과정에서 원본파일이 아닌 Clone파일을 사용하기 위해 복제
-                    Bitmap mImageBitmapCopy = (Bitmap)mImageBitmap.Clone();
-
-                    // 파일 저장
-                    mImageBitmapCopy.Save(Path.Combine(folderPath, filename), ImageFormat.Png);
-                }).ContinueWith((prevTask) =>
-                {
-
-                    var imageBytes = File.ReadAllBytes(Path.Combine(folderPath, filename));
-                    
-                    // ML모델 사용
-                    Identify_Face.ModelInput sampleData = new Identify_Face.ModelInput()
+                if (faceDetector.CatchCnt != 0)
                     {
-                        ImageSource = imageBytes,
-                    };
+                    // 비동기 작업 실행 제한
+                    if (semaphore.CurrentCount > 2)
+                    {
+                        Task.Run(async () =>
+                        {
+                            await semaphore.WaitAsync();
 
-                   var sortedScoresWithLabel = Identify_Face.PredictAllLabels(sampleData);
-                   
-                    // 비교결과중 예상치가 더 높은 결과를 가져오도록 함.
-                   var highestScoreKey = sortedScoresWithLabel.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+                            try
+                            {
+                                stopwatch.Start();
+                                CatchTime.BackColor = Color.Blue;
 
-                    // UI 업데이트는 UI 스레드에서 실행
-                    UpdateResultBox(highestScoreKey.ToString());
+                                UploadCnt++;
+                                string filename = "NewFace" + UploadCnt.ToString() + ".png";
+                                string folderPath = @"C:\Users\mw281\OneDrive\바탕 화면\IdentifyFace\steven";
 
-                });
+                                Bitmap mImageBitmapCopy = (Bitmap)mImageBitmap.Clone();
+
+                                // 파일 저장
+                                mImageBitmapCopy.Save(Path.Combine(folderPath, filename), ImageFormat.Png);
+
+                                var imageBytes = File.ReadAllBytes(Path.Combine(folderPath, filename));
+
+                                // ML모델 사용
+                                Identify_Face.ModelInput sampleData = new Identify_Face.ModelInput()
+                                {
+                                    ImageSource = imageBytes,
+                                };
+
+                                var sortedScoresWithLabel = Identify_Face.PredictAllLabels(sampleData);
+
+                                var highestScoreKey = sortedScoresWithLabel.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+
+                                // UI 업데이트는 UI 스레드에서 실행
+                                UpdateResultBox(highestScoreKey.ToString());
+
+                            }
+                            finally
+                            {
+                                semaphore.Release();
+                            }
+                        });
+                    }
+                }
+
+                else if (faceDetector.CatchCnt == 0 && stopwatch.IsRunning)
+                {
+                    CatchTime.BackColor = Color.Red;
+                    stopwatch.Stop();
+
+                    cumulativeTime += stopwatch.Elapsed;
+                    CatchTime.Text = "Working Time: " + cumulativeTime.ToString(@"hh\:mm\:ss");
+
+                    stopwatch.Reset();
+                    CatchTime.BackColor = Color.Wheat;
+
+                }
+
 
             }
-            else if (faceDetector.CatchCnt == 0 && stopwatch.IsRunning)
-            {
-                // 얼굴이 감지되지 않는 동안의 시간을 계속 측정
-                CatchCnt.BackColor = Color.Red;
-            }
-            else if (faceDetector.CatchCnt > 0 && stopwatch.IsRunning)
-            {
-                stopwatch.Stop();
-
-                // 빨간 사각형이 표시되는 동안의 시간만 DB에 삽입
-                InsertTimeIntoDatabase(stopwatch.Elapsed, cumulativeTime);
-
-                cumulativeTime += stopwatch.Elapsed;
-                stopwatch.Reset();
-                CatchCnt.BackColor = Color.Wheat;
-            }
-
-            CatchCnt.Text = "No Face Detected Time: " + cumulativeTime.ToString(@"hh\:mm\:ss");
 
         }
+
 
 
         private void InsertTimeIntoDatabase(TimeSpan onceTime, TimeSpan totalTime)
@@ -172,8 +187,27 @@ namespace Im_Not_Playing
             ResultBox.Text = text;
         }
 
+        //일시정지 및 시작
+        private void BTN_P_S_Click(object sender, EventArgs e)
+        {
+            if(DetectorFlag)
+            {
+                DetectorFlag = false;
+            }
+            else
+            {
+                DetectorFlag = true;
 
+            }
+        }
 
+        //종료 및 DB 저장
+        private void button2_Click(object sender, EventArgs e)
+        {
+            InsertTimeIntoDatabase(stopwatch.Elapsed, cumulativeTime);
+            DetectorFlag = false;
+
+        }
     }
 }
 

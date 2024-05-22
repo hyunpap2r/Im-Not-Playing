@@ -31,59 +31,95 @@
             components = new System.ComponentModel.Container();
             pictureBox1 = new PictureBox();
             timer1 = new System.Windows.Forms.Timer(components);
-            CatchCnt = new TextBox();
-            timer2 = new System.Windows.Forms.Timer(components);
+            CatchTime = new TextBox();
             ResultBox = new TextBox();
+            BTN_P_S = new Button();
+            button2 = new Button();
+            groupBox1 = new GroupBox();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
+            groupBox1.SuspendLayout();
             SuspendLayout();
             // 
             // pictureBox1
             // 
-            pictureBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pictureBox1.Location = new Point(0, 0);
+            pictureBox1.Dock = DockStyle.Fill;
+            pictureBox1.Location = new Point(0, 16);
             pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(648, 485);
+            pictureBox1.Size = new Size(649, 483);
             pictureBox1.TabIndex = 0;
             pictureBox1.TabStop = false;
             // 
             // timer1
             // 
+            timer1.Enabled = true;
             timer1.Tick += timer1_Tick;
             // 
-            // CatchCnt
+            // CatchTime
             // 
-            CatchCnt.Font = new Font("맑은 고딕", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
-            CatchCnt.Location = new Point(424, 8);
-            CatchCnt.Name = "CatchCnt";
-            CatchCnt.ReadOnly = true;
-            CatchCnt.Size = new Size(217, 25);
-            CatchCnt.TabIndex = 1;
-            // 
-            // timer2
-            // 
-            timer2.Enabled = true;
+            CatchTime.Font = new Font("맑은 고딕", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            CatchTime.Location = new Point(6, 504);
+            CatchTime.Name = "CatchTime";
+            CatchTime.ReadOnly = true;
+            CatchTime.Size = new Size(217, 25);
+            CatchTime.TabIndex = 1;
             // 
             // ResultBox
             // 
-            ResultBox.Location = new Point(475, 39);
+            ResultBox.Font = new Font("맑은 고딕", 9.75F, FontStyle.Bold, GraphicsUnit.Point);
+            ResultBox.Location = new Point(229, 504);
             ResultBox.Name = "ResultBox";
             ResultBox.ReadOnly = true;
-            ResultBox.Size = new Size(166, 23);
+            ResultBox.Size = new Size(84, 25);
             ResultBox.TabIndex = 2;
+            // 
+            // BTN_P_S
+            // 
+            BTN_P_S.Location = new Point(325, 506);
+            BTN_P_S.Name = "BTN_P_S";
+            BTN_P_S.Size = new Size(156, 23);
+            BTN_P_S.TabIndex = 3;
+            BTN_P_S.Text = "일시정지/시작\r\n";
+            BTN_P_S.UseVisualStyleBackColor = true;
+            BTN_P_S.Click += BTN_P_S_Click;
+            // 
+            // button2
+            // 
+            button2.Location = new Point(487, 505);
+            button2.Name = "button2";
+            button2.Size = new Size(156, 23);
+            button2.TabIndex = 4;
+            button2.Text = "종료 및 저장";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += button2_Click;
+            // 
+            // groupBox1
+            // 
+            groupBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            groupBox1.Controls.Add(pictureBox1);
+            groupBox1.Location = new Point(0, 1);
+            groupBox1.Margin = new Padding(0);
+            groupBox1.Name = "groupBox1";
+            groupBox1.Padding = new Padding(0);
+            groupBox1.Size = new Size(649, 499);
+            groupBox1.TabIndex = 5;
+            groupBox1.TabStop = false;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(648, 485);
+            ClientSize = new Size(650, 535);
+            Controls.Add(groupBox1);
+            Controls.Add(button2);
+            Controls.Add(BTN_P_S);
             Controls.Add(ResultBox);
-            Controls.Add(CatchCnt);
-            Controls.Add(pictureBox1);
+            Controls.Add(CatchTime);
             Name = "Form1";
             Text = "Im Not Playing";
             FormClosed += Form1_FormClosed;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
+            groupBox1.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -92,8 +128,10 @@
 
         private PictureBox pictureBox1;
         private System.Windows.Forms.Timer timer1;
-        private TextBox CatchCnt;
-        private System.Windows.Forms.Timer timer2;
+        private TextBox CatchTime;
         private TextBox ResultBox;
+        private Button BTN_P_S;
+        private Button button2;
+        private GroupBox groupBox1;
     }
 }

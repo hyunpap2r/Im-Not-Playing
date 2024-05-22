@@ -64,7 +64,7 @@ namespace Im_Not_Playing
             }
             catch (ThreadAbortException)
             {
-                // 예외를 무시합니다.
+                // 예외 무시
             }
             return null;
         }
