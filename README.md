@@ -11,6 +11,16 @@
 3. 일시정지/재시작 기능을 통한 업무 외적인 시간에 대한 예외시간 관리
 4. 정확한 업무시간의 지속적인 Data 관리
 
+
+   ![image](https://github.com/hyunpap2r/Im-Not-Playing/assets/91259577/7c1141c2-9ffd-4bf4-ac62-3b5191ebb081)
+
+
+   ![image](https://github.com/hyunpap2r/Im-Not-Playing/assets/91259577/a207c3e6-705a-4d44-b9fd-6a748b4cfc92)
+
+
+
+
+
 현재는 위와 같은 기능을만 추가되어 있으며, 이 기능들을 기반으로 하여 다양한 기능들을 지속적으로 추가할 예정입니다.
 
 추가 예정 기능
